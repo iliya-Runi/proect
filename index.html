@@ -148,14 +148,14 @@
 <body>
 
   <header>
-    <!-- Добавлены ID для JS -->
     <div class="logo" id="site-logo">Bar 35</div>
     <div class="header-phone" id="site-phone">+7 (999) 123-45-67</div>
   </header>
 
+  <!-- Добавлены ID для заголовка и подзаголовка -->
   <section class="hero">
-    <h1>Крафтовое пиво и хорошая музыка</h1>
-    <p>Уютный бар в центре города. Отборные сорта пива, живая музыка по выходным и отличная компания.</p>
+    <h1 id="site-hero-title">Крафтовое пиво и хорошая музыка</h1>
+    <p id="site-hero-desc">Уютный бар в центре города. Отборные сорта пива, живая музыка по выходным и отличная компания.</p>
   </section>
 
   <section class="section" id="beer">
@@ -169,7 +169,6 @@
   </section>
 
   <footer>
-    <!-- Добавлены ID для JS -->
     <p><span id="site-address">📍 г. Москва, ул. Барная, д. 35</span> | <span id="site-hours">🕒 Ежедневно 18:00 – 02:00</span></p>
     <p style="margin-top: 0.5rem; font-size: 0.8rem;" id="site-copyright">© 2026 Bar 35. Все права защищены.</p>
     
@@ -200,9 +199,8 @@
       <h2>Управление сайтом</h2>
       <p style="font-size: 0.85rem; color: #aaa; margin-bottom: 1rem;">Измените данные и нажмите «Сохранить».</p>
       
-      <!-- Новый контейнер для основных настроек -->
       <div id="settings-admin-container"></div>
-      
+      <div id="hero-admin-container"></div>
       <div id="beer-admin-container"></div>
       <div id="events-admin-container"></div>
 
@@ -217,14 +215,15 @@
     const ADMIN_LOGIN = "admin";
     const ADMIN_PASS = "12345";
 
-    // Добавлен объект settings
     const defaultData = {
       settings: {
         companyName: "Bar 35",
         phone: "+7 (999) 123-45-67",
         address: "📍 г. Москва, ул. Барная, д. 35",
         hours: "🕒 Ежедневно 18:00 – 02:00",
-        copyright: "© 2026 Bar 35. Все права защищены."
+        copyright: "© 2026 Bar 35. Все права защищены.",
+        heroTitle: "Крафтовое пиво и хорошая музыка",
+        heroDesc: "Уютный бар в центре города. Отборные сорта пива, живая музыка по выходным и отличная компания."
       },
       beers: [
         { id: 1, title: "Светлое нефильтрованное", price: "250 ₽", desc: "Классический вкус с легкой горчинкой.", img: "https://images.unsplash.com/photo-1608270586620-248524c67de9?w=500&q=80" },
@@ -240,11 +239,12 @@
       ]
     };
 
-    // Проверка, если в localStorage старая версия без settings, добавляем их
     let siteData = JSON.parse(localStorage.getItem('barSiteData')) || JSON.parse(JSON.stringify(defaultData));
-    if (!siteData.settings) {
-        siteData.settings = defaultData.settings;
-    }
+    
+    // Проверка на старые сохранения (чтобы не было ошибок undefined)
+    if (!siteData.settings) siteData.settings = defaultData.settings;
+    if (!siteData.settings.heroTitle) siteData.settings.heroTitle = defaultData.settings.heroTitle;
+    if (!siteData.settings.heroDesc) siteData.settings.heroDesc = defaultData.settings.heroDesc;
 
     function showLogin() {
       document.getElementById('loginError').style.display = 'none';
@@ -270,12 +270,11 @@
     }
 
     function openAdmin() {
-      // 1. Генерируем поля для основных настроек
+      // 1. Основные настройки (Шапка, подвал)
       const settingsContainer = document.getElementById('settings-admin-container');
       settingsContainer.innerHTML = `
         <div class="admin-group">
-          <h4>⚙️ Основные настройки</h4>
-          
+          <h4>⚙️ Шапка и подвал</h4>
           <label class="admin-label">Название (Логотип)</label>
           <input type="text" id="set-companyName" class="admin-input" value="${siteData.settings.companyName}">
           
@@ -293,7 +292,20 @@
         </div>
       `;
 
-      // 2. Генерируем поля для пива
+      // 2. Главный экран (Hero)
+      const heroContainer = document.getElementById('hero-admin-container');
+      heroContainer.innerHTML = `
+        <div class="admin-group">
+          <h4>🏠 Главный экран</h4>
+          <label class="admin-label">Заголовок</label>
+          <input type="text" id="set-heroTitle" class="admin-input" value="${siteData.settings.heroTitle}">
+          
+          <label class="admin-label">Текст под заголовком</label>
+          <textarea id="set-heroDesc" class="admin-input" rows="3">${siteData.settings.heroDesc}</textarea>
+        </div>
+      `;
+
+      // 3. Пиво
       const beerContainer = document.getElementById('beer-admin-container');
       beerContainer.innerHTML = '<h4>🍺 Сорта пива (6 шт.)</h4>' + siteData.beers.map(b => `
         <div class="admin-group">
@@ -313,7 +325,7 @@
         </div>
       `).join('');
 
-      // 3. Генерируем поля для афиши
+      // 4. Афиша
       const eventsContainer = document.getElementById('events-admin-container');
       eventsContainer.innerHTML = '<h4>🎸 Афиша</h4>' + siteData.events.map(e => `
         <div class="admin-group" style="border-bottom: none; margin-bottom: 0; padding-bottom: 0;">
@@ -359,13 +371,15 @@
     }
 
     function saveAdmin() {
-      // Сохраняем основные настройки
+      // Сохраняем основные настройки и главный экран
       siteData.settings = {
         companyName: document.getElementById('set-companyName').value,
         phone: document.getElementById('set-phone').value,
         address: document.getElementById('set-address').value,
         hours: document.getElementById('set-hours').value,
-        copyright: document.getElementById('set-copyright').value
+        copyright: document.getElementById('set-copyright').value,
+        heroTitle: document.getElementById('set-heroTitle').value,
+        heroDesc: document.getElementById('set-heroDesc').value
       };
 
       // Сохраняем пиво
@@ -402,6 +416,10 @@
       document.getElementById('site-address').textContent = siteData.settings.address;
       document.getElementById('site-hours').textContent = siteData.settings.hours;
       document.getElementById('site-copyright').textContent = siteData.settings.copyright;
+      
+      // Рендерим главный экран
+      document.getElementById('site-hero-title').textContent = siteData.settings.heroTitle;
+      document.getElementById('site-hero-desc').textContent = siteData.settings.heroDesc;
 
       // Рендерим пиво
       document.getElementById('beer-grid').innerHTML = siteData.beers.map(b => `
