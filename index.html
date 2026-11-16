@@ -1,0 +1,362 @@
+<!doctype html>
+<html lang="ru">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Bar 35 | Крафтовое пиво и живая музыка</title>
+  <style>
+    :root {
+      --bg: #0f0f0f;
+      --text: #f3f3f3;
+      --accent: #f59e0b;
+      --card: #1a1a1a;
+      --muted: #a3a3a3;
+      --border: #333;
+    }
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body {
+      font-family: system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
+      background: var(--bg);
+      color: var(--text);
+      line-height: 1.6;
+    }
+    a { text-decoration: none; color: inherit; }
+    img { max-width: 100%; display: block; object-fit: cover; }
+
+    /* Шапка */
+    header {
+      display: flex; justify-content: space-between; align-items: center;
+      padding: 1rem 5%; background: rgba(15,15,15,0.95);
+      position: sticky; top: 0; z-index: 100;
+      border-bottom: 1px solid var(--border);
+      backdrop-filter: blur(10px);
+    }
+    .logo { font-size: 1.5rem; font-weight: 900; color: var(--accent); text-transform: uppercase; }
+    .header-phone { font-weight: 600; font-size: 0.9rem; }
+
+    /* Главный экран */
+    .hero {
+      padding: 6rem 5%; text-align: center;
+      background: linear-gradient(rgba(0,0,0,0.7), rgba(0,0,0,0.8)), url('https://images.unsplash.com/photo-1514933651103-005eec06c04b?auto=format&fit=crop&w=1000&q=80') center/cover;
+      border-bottom: 2px solid var(--accent);
+    }
+    .hero h1 { font-size: clamp(2rem, 6vw, 3.5rem); margin-bottom: 1rem; text-transform: uppercase; letter-spacing: 1px; line-height: 1.1; }
+    .hero p { font-size: 1.1rem; color: #ddd; max-width: 600px; margin: 0 auto; }
+
+    /* Секции */
+    .section { padding: 3rem 5%; max-width: 1000px; margin: 0 auto; }
+    .section-title { font-size: 1.8rem; margin-bottom: 1.5rem; text-align: center; color: var(--accent); }
+
+    /* Сетка пива */
+    .beer-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap: 1.5rem; }
+    .beer-card {
+      background: var(--card); border-radius: 12px;
+      border: 1px solid var(--border); overflow: hidden;
+      display: flex; flex-direction: column;
+    }
+    .beer-img { height: 200px; width: 100%; border-bottom: 1px solid var(--border); }
+    .beer-content { padding: 1.5rem; flex-grow: 1; display: flex; flex-direction: column; }
+    .beer-header { display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 0.5rem; }
+    .beer-name { font-size: 1.2rem; font-weight: 700; }
+    .beer-price { font-size: 1.2rem; font-weight: 800; color: var(--accent); white-space: nowrap; }
+    .beer-desc { font-size: 0.9rem; color: var(--muted); flex-grow: 1; }
+
+    /* Афиша */
+    .events-list { display: flex; flex-direction: column; gap: 1rem; }
+    .event-item {
+      display: flex; flex-direction: column; gap: 0.5rem;
+      background: var(--card); padding: 1.2rem; border-radius: 8px;
+      border-left: 4px solid var(--accent);
+    }
+    @media (min-width: 600px) {
+      .event-item { flex-direction: row; justify-content: space-between; align-items: center; }
+    }
+    .event-date { font-weight: 800; color: var(--accent); min-width: 80px; }
+    .event-band { font-size: 1.1rem; font-weight: 600; flex-grow: 1; }
+    .event-time { color: var(--muted); font-size: 0.9rem; }
+
+    /* Подвал */
+    footer { text-align: center; padding: 2rem; border-top: 1px solid var(--border); color: var(--muted); font-size: 0.9rem; }
+    .admin-trigger { color: #555; font-size: 0.8rem; cursor: pointer; text-decoration: underline; margin-top: 1.5rem; display: inline-block; }
+    .admin-trigger:hover { color: var(--accent); }
+
+    /* МОДАЛЬНЫЕ ОКНА */
+    .modal-overlay {
+      display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%;
+      background: rgba(0,0,0,0.9); z-index: 1000; justify-content: center; align-items: center;
+      padding: 1rem;
+    }
+    .modal-overlay.active { display: flex; }
+    
+    /* Окно входа */
+    .login-box {
+      background: var(--card); padding: 2rem; border-radius: 12px;
+      width: 100%; max-width: 400px; border: 1px solid var(--border);
+      text-align: center;
+    }
+    .login-box h2 { margin-bottom: 1rem; color: var(--accent); }
+    .login-box input {
+      width: 100%; padding: 0.8rem; margin-bottom: 1rem;
+      background: var(--bg); border: 1px solid var(--border);
+      color: #fff; border-radius: 6px;
+    }
+    .login-box input:focus { outline: none; border-color: var(--accent); }
+    .login-error { color: #ef4444; font-size: 0.9rem; margin-bottom: 1rem; display: none; }
+
+    /* Окно админки */
+    .admin-content {
+      background: #1a1a1a; color: #fff; padding: 1.5rem; border-radius: 12px;
+      width: 100%; max-width: 600px; max-height: 90vh; overflow-y: auto;
+      border: 1px solid var(--border);
+    }
+    .admin-content h2 { margin-bottom: 1.5rem; color: var(--accent); }
+    .admin-group { margin-bottom: 1.5rem; padding-bottom: 1.5rem; border-bottom: 1px solid var(--border); }
+    .admin-group h4 { margin-bottom: 0.8rem; color: #ddd; font-size: 0.9rem; text-transform: uppercase; }
+    .admin-label { display: block; font-size: 0.8rem; color: var(--muted); margin-bottom: 0.3rem; }
+    
+    .admin-input { 
+      width: 100%; padding: 0.8rem; margin-bottom: 0.8rem; 
+      background: #0f0f0f; border: 1px solid var(--border); color: #fff; 
+      border-radius: 6px; font-size: 0.9rem; 
+    }
+    .admin-input:focus { outline: none; border-color: var(--accent); }
+    
+    /* Стили для загрузки файла */
+    .file-upload-box {
+      background: #0f0f0f; border: 1px dashed var(--border); padding: 1rem;
+      border-radius: 6px; text-align: center; margin-bottom: 1rem; cursor: pointer;
+    }
+    .file-upload-box:hover { border-color: var(--accent); }
+    .file-upload-box input[type="file"] { display: none; }
+    .preview-img { max-height: 60px; border-radius: 4px; margin-top: 10px; display: inline-block; }
+
+    .admin-actions { display: flex; gap: 1rem; margin-top: 1rem; }
+    .btn { padding: 0.8rem 1.5rem; border-radius: 6px; cursor: pointer; font-weight: bold; flex: 1; border: none; font-size: 1rem; }
+    .btn-save { background: var(--accent); color: #000; }
+    .btn-close { background: #333; color: #fff; }
+  </style>
+</head>
+<body>
+
+  <header>
+    <div class="logo">Bar 35</div>
+    <div class="header-phone">+7 (999) 123-45-67</div>
+  </header>
+
+  <section class="hero">
+    <h1>Крафтовое пиво и хорошая музыка</h1>
+    <p>Уютный бар в центре города. Отборные сорта пива, живая музыка по выходным и отличная компания.</p>
+  </section>
+
+  <section class="section" id="beer">
+    <h2 class="section-title">Наше пиво (6 сортов)</h2>
+    <div class="beer-grid" id="beer-grid"></div>
+  </section>
+
+  <section class="section" id="events">
+    <h2 class="section-title">Афиша выступлений</h2>
+    <div class="events-list" id="events-list"></div>
+  </section>
+
+  <footer>
+    <p>📍 г. Москва, ул. Барная, д. 35 | 🕒 Ежедневно 18:00 – 02:00</p>
+    <p style="margin-top: 0.5rem; font-size: 0.8rem;">© 2026 Bar 35. Все права защищены.</p>
+    
+    <span class="admin-trigger" onclick="showLogin()">Вход для администратора</span>
+  </footer>
+
+  <!-- 1. ОКНО АВТОРИЗАЦИИ -->
+  <div class="modal-overlay" id="loginModal">
+    <div class="login-box">
+      <h2>Вход в систему</h2>
+      <p style="font-size: 0.9rem; color: #aaa; margin-bottom: 1.5rem;">Введите логин и пароль</p>
+      
+      <input type="text" id="loginUser" placeholder="Логин (admin)">
+      <input type="password" id="loginPass" placeholder="Пароль (12345)">
+      
+      <div class="login-error" id="loginError">Неверный логин или пароль</div>
+      
+      <div class="admin-actions">
+        <button class="btn btn-close" onclick="hideLogin()">Отмена</button>
+        <button class="btn btn-save" onclick="checkLogin()">Войти</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- 2. ОКНО АДМИНКИ -->
+  <div class="modal-overlay" id="adminModal">
+    <div class="admin-content">
+      <h2>Управление сайтом</h2>
+      <p style="font-size: 0.85rem; color: #aaa; margin-bottom: 1rem;">Измените данные и нажмите «Сохранить».</p>
+      
+      <div id="beer-admin-container"></div>
+      <div id="events-admin-container"></div>
+
+      <div class="admin-actions">
+        <button class="btn btn-close" onclick="closeAdmin()">Отмена</button>
+        <button class="btn btn-save" onclick="saveAdmin()">Сохранить</button>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    const ADMIN_LOGIN = "admin";
+    const ADMIN_PASS = "12345";
+
+    const defaultData = {
+      beers: [
+        { id: 1, title: "Светлое нефильтрованное", price: "250 ₽", desc: "Классический вкус с легкой горчинкой.", img: "https://images.unsplash.com/photo-1613422343304-313d8b0eb0d1?w=500&q=80" },
+        { id: 2, title: "Индийский Пэйл Эль (IPA)", price: "320 ₽", desc: "Насыщенный хмелевой аромат с нотками цитрусовых.", img: "https://images.unsplash.com/photo-1566633806327-68e152aaf26d?w=500&q=80" },
+        { id: 3, title: "Стаут", price: "300 ₽", desc: "Темное пиво с нотками шоколада и кофе.", img: "https://images.unsplash.com/photo-1532634922-8fe0b757fb13?w=500&q=80" },
+        { id: 4, title: "Пшеничное (Weissbier)", price: "280 ₽", desc: "Мягкий вкус с нотками банана и гвоздики.", img: "https://images.unsplash.com/photo-1571613316887-6f8d5cbf7ef7?w=500&q=80" },
+        { id: 5, title: "Красный Эль", price: "310 ₽", desc: "Солодовый вкус с карамельными нотками.", img: "https://images.unsplash.com/photo-1584225064785-c62a8b43d148?w=500&q=80" },
+        { id: 6, title: "Сидр яблочный", price: "260 ₽", desc: "Освежающий сладковатый напиток из яблок.", img: "https://images.unsplash.com/photo-1565619624098-2b1577062f74?w=500&q=80" }
+      ],
+      events: [
+        { id: 1, date: "15 ноября", band: "Группа «Вечерний Джаз»", time: "20:00" },
+        { id: 2, date: "16 ноября", band: "Акустический вечер (Open Mic)", time: "19:00" }
+      ]
+    };
+
+    let siteData = JSON.parse(localStorage.getItem('barSiteData')) || JSON.parse(JSON.stringify(defaultData));
+
+    function showLogin() {
+      document.getElementById('loginError').style.display = 'none';
+      document.getElementById('loginUser').value = '';
+      document.getElementById('loginPass').value = '';
+      document.getElementById('loginModal').classList.add('active');
+    }
+
+    function hideLogin() {
+      document.getElementById('loginModal').classList.remove('active');
+    }
+
+    function checkLogin() {
+      const user = document.getElementById('loginUser').value;
+      const pass = document.getElementById('loginPass').value;
+
+      if (user === ADMIN_LOGIN && pass === ADMIN_PASS) {
+        hideLogin();
+        openAdmin();
+      } else {
+        document.getElementById('loginError').style.display = 'block';
+      }
+    }
+
+    function openAdmin() {
+      const beerContainer = document.getElementById('beer-admin-container');
+      beerContainer.innerHTML = '<h4>🍺 Сорта пива (6 шт.)</h4>' + siteData.beers.map(b => `
+        <div class="admin-group">
+          <label class="admin-label">Пиво ${b.id}: Название</label>
+          <input type="text" id="beer-title-${b.id}" class="admin-input" value="${b.title}">
+          
+          <label class="admin-label">Цена</label>
+          <input type="text" id="beer-price-${b.id}" class="admin-input" value="${b.price}">
+          
+          <label class="admin-label">Фотография</label>
+          <div class="file-upload-box" onclick="document.getElementById('beer-file-${b.id}').click()">
+            <span style="font-size: 0.9rem; color: var(--muted);">📸 Нажмите, чтобы загрузить новое фото</span>
+            <input type="file" id="beer-file-${b.id}" accept="image/*" onchange="handleImageUpload(event, 'beer', ${b.id})">
+            <br>
+            <img src="${b.img}" id="preview-beer-${b.id}" class="preview-img">
+          </div>
+        </div>
+      `).join('');
+
+      const eventsContainer = document.getElementById('events-admin-container');
+      eventsContainer.innerHTML = '<h4>🎸 Афиша</h4>' + siteData.events.map(e => `
+        <div class="admin-group" style="border-bottom: none; margin-bottom: 0; padding-bottom: 0;">
+          <label class="admin-label">Дата</label>
+          <input type="text" id="event-date-${e.id}" class="admin-input" value="${e.date}">
+          
+          <label class="admin-label">Название группы / События</label>
+          <input type="text" id="event-band-${e.id}" class="admin-input" value="${e.band}">
+          
+          <label class="admin-label">Время</label>
+          <input type="text" id="event-time-${e.id}" class="admin-input" value="${e.time}">
+        </div>
+      `).join('');
+
+      document.getElementById('adminModal').classList.add('active');
+    }
+
+    function closeAdmin() {
+      document.getElementById('adminModal').classList.remove('active');
+    }
+
+    function handleImageUpload(event, type, id) {
+      const file = event.target.files[0];
+      if (!file) return;
+
+      if (file.size > 1500000) {
+        alert('Файл слишком большой для демо-версии (макс 1.5 МБ). Выберите картинку поменьше.');
+        event.target.value = '';
+        return;
+      }
+
+      const reader = new FileReader();
+      reader.onload = function(e) {
+        const base64Image = e.target.result;
+        document.getElementById(`preview-${type}-${id}`).src = base64Image;
+
+        if (type === 'beer') {
+          const beer = siteData.beers.find(b => b.id === id);
+          if (beer) beer.img = base64Image;
+        }
+      };
+      reader.readAsDataURL(file);
+    }
+
+    function saveAdmin() {
+      siteData.beers = siteData.beers.map(b => ({
+        id: b.id,
+        title: document.getElementById(`beer-title-${b.id}`).value,
+        price: document.getElementById(`beer-price-${b.id}`).value,
+        img: b.img,
+        desc: b.desc
+      }));
+
+      siteData.events = siteData.events.map(e => ({
+        id: e.id,
+        date: document.getElementById(`event-date-${e.id}`).value,
+        band: document.getElementById(`event-band-${e.id}`).value,
+        time: document.getElementById(`event-time-${e.id}`).value
+      }));
+
+      try {
+        localStorage.setItem('barSiteData', JSON.stringify(siteData));
+        renderSite();
+        closeAdmin();
+        alert('Изменения сохранены!');
+      } catch (error) {
+        alert('Ошибка: память браузера переполнена. Попробуйте загрузить картинки меньшего размера.');
+      }
+    }
+
+    function renderSite() {
+      document.getElementById('beer-grid').innerHTML = siteData.beers.map(b => `
+        <div class="beer-card">
+          <img src="${b.img}" alt="${b.title}" class="beer-img" onerror="this.src='https://via.placeholder.com/500x300?text=Нет+фото'">
+          <div class="beer-content">
+            <div class="beer-header">
+              <div class="beer-name">${b.title}</div>
+              <div class="beer-price">${b.price}</div>
+            </div>
+            <div class="beer-desc">${b.desc}</div>
+          </div>
+        </div>
+      `).join('');
+
+      document.getElementById('events-list').innerHTML = siteData.events.map(e => `
+        <div class="event-item">
+          <div class="event-date">${e.date}</div>
+          <div class="event-band">${e.band}</div>
+          <div class="event-time">${e.time}</div>
+        </div>
+      `).join('');
+    }
+
+    renderSite();
+  </script>
+</body>
+</html>
